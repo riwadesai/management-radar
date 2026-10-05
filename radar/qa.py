@@ -111,7 +111,7 @@ def answer(question: str, company_id: int | None) -> dict:
         valid = {r["id"]: r for r in rows}
         # Keep only citations that were actually retrieved; also harvest [Cnn]
         # written inline in case the model forgot to list one.
-        inline = {int(m) for m in re.findall(r"\[C(\d+)\]", out["answer"])}
+        inline = {int(x) for grp in re.findall(r"\[C\d+(?:\s*,\s*C?\d+)*\]", out["answer"]) for x in re.findall(r"\d+", grp)}
         cited = [cid for cid in dict.fromkeys(list(out["citations"]) + sorted(inline)) if cid in valid]
         result = {
             "answer": out["answer"],

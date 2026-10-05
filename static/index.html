@@ -276,12 +276,15 @@ $('#chatForm').onsubmit = async e => {
 function renderAnswer(r){
   const byId = Object.fromEntries(r.citations.map(c=>[c.chunk_id, c]));
   let n = 0; const order = {};
-  const text = esc(r.answer).replace(/\[C(\d+)\]/g, (m, id) => {
+  // Accept [C12], [C12][C13] and grouped [C12, C13] / [C12, 13] forms.
+  const chip = id => {
     const c = byId[id]; if(!c) return '';
     if(!order[id]) order[id] = ++n;
     const t = c.kind==='pdf' ? `${c.title}, page ${c.page}` : `${c.title} at ${c.timestamp}`;
     return `<a class="cite" href="${esc(c.href)}" target="_blank" rel="noopener" title="${esc(t)}">${order[id]}</a>`;
-  });
+  };
+  const text = esc(r.answer).replace(/\[C\d+(?:\s*,\s*C?\d+)*\]/g, m =>
+    (m.match(/\d+/g) || []).map(chip).join(''));
   const list = Object.keys(order).sort((a,b)=>order[a]-order[b]).map(id => {
     const c = byId[id];
     return `<a href="${esc(c.href)}" target="_blank" rel="noopener">${order[id]}. ${esc(c.kind==='pdf' ? `${c.title} · p.${c.page}` : `${c.title} · ▶ ${c.timestamp}`)}</a>`;

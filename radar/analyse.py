@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 
 from .config import MODEL
 from .db import session
@@ -98,6 +99,24 @@ def _source_text(conn, source_id: int) -> tuple[str, dict[str, int]]:
     return "\n\n".join(parts), index
 
 
+def _norm(t: str) -> str:
+    return re.sub(r"\s+", " ", t.replace("\u2019", "'").replace("\u201c", '"').replace("\u201d", '"')).strip().lower()
+
+
+def locate_chunk(conn, source_id: int, marker: str, quote: str, marker_index: dict) -> int | None:
+    """Prefer the marker the model named; fall back to finding the quote verbatim."""
+    m = re.search(r"\[?([PT][\d:]+)\]?", marker or "")
+    if m and f"[{m.group(1)}]" in marker_index:
+        return marker_index[f"[{m.group(1)}]"]
+    needle = _norm(quote)[:60]
+    if len(needle) < 20:
+        return None
+    for r in conn.execute("SELECT id, text FROM chunks WHERE source_id=? ORDER BY ordinal", (source_id,)):
+        if needle in _norm(r["text"]):
+            return r["id"]
+    return None
+
+
 def analyse_source(conn, src) -> dict:
     text, marker_index = _source_text(conn, src["id"])
     company = conn.execute("SELECT name FROM companies WHERE id=?", (src["company_id"],)).fetchone()[0]
@@ -122,8 +141,8 @@ def analyse_source(conn, src) -> dict:
     conn.execute("DELETE FROM claims WHERE source_id=?", (src["id"],))
     conn.executemany(
         "INSERT INTO claims(source_id, chunk_id, statement, quote, horizon, topic) VALUES (?,?,?,?,?,?)",
-        [(src["id"], marker_index.get(c["marker"]), c["statement"], c["quote"], c["horizon"], c["topic"])
-         for c in claims],
+        [(src["id"], locate_chunk(conn, src["id"], c["marker"], c["quote"], marker_index),
+          c["statement"], c["quote"], c["horizon"], c["topic"]) for c in claims],
     )
     return {"tags": out["tags"], "claims": len(claims)}
 

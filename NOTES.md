@@ -33,8 +33,14 @@ what I accepted, changed, or rejected.
   announcement" in the brief but the PDF is Infosys's 48-page press-conference
   and earnings-call transcript. I kept the given title as "Listed as:" and let
   the model's own headline lead, so the timeline shows what the document is.
-- **Default model `claude-opus-5`**, overridable by `RADAR_MODEL`. Analysis
-  runs at `effort: medium`, answering at `effort: high`.
+- **Model: Gemini 3.5 Flash on the free tier**, overridable by `RADAR_MODEL`.
+  First try was `gemini-3.8-flash`, which returned 503 "high demand" on every
+  call that evening; `gemini-2.5-flash` is no longer offered to new keys;
+  `gemini-3.6-flash` marked an unanswerable question as grounded in a smoke
+  test. `gemini-3.5-flash` passed the smoke test (refused to answer from an
+  injected instruction, set grounded=false) and was reachable, so it won. The
+  wrapper retries 429/503 with backoff because the free tier rate-limits per
+  minute. A Claude path (`ANTHROPIC_API_KEY`) is kept in `radar/llm.py`.
 
 ## Security
 

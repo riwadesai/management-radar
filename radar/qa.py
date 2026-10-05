@@ -106,7 +106,7 @@ def answer(question: str, company_id: int | None) -> dict:
             for r in rows
         )
         user = f"Question: {question}\n\nPassages:\n{passages}"
-        out = complete_json(ANSWER_SYSTEM, user, ANSWER_SCHEMA, effort="high", max_tokens=2000)
+        out = complete_json(ANSWER_SYSTEM, user, ANSWER_SCHEMA, effort="high", max_tokens=4000)
 
         valid = {r["id"]: r for r in rows}
         # Keep only citations that were actually retrieved; also harvest [Cnn]

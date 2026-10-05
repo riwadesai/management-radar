@@ -21,7 +21,7 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 # Provider is chosen by which key is present; Gemini wins if both are set.
 if GEMINI_API_KEY:
     PROVIDER = "gemini"
-    MODEL = os.getenv("RADAR_MODEL", "gemini-2.5-flash")
+    MODEL = os.getenv("RADAR_MODEL", "gemini-3.5-flash")
 elif ANTHROPIC_API_KEY:
     PROVIDER = "anthropic"
     MODEL = os.getenv("RADAR_MODEL", "claude-opus-5")

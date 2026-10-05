@@ -89,7 +89,7 @@ Interactive docs at `/api/docs`.
 Everything is read from `.env` (see `.env.example`). Set `GEMINI_API_KEY`
 (free tier from Google AI Studio) or `ANTHROPIC_API_KEY`; the provider is
 picked from whichever is present. Optional: `RADAR_MODEL` (default
-`gemini-2.5-flash` or `claude-opus-5`), `RADAR_DB`.
+`gemini-3.5-flash` or `claude-opus-5`), `RADAR_DB`.
 
 ## Demo recording
 

@@ -17,6 +17,7 @@ from typing import Any
 from .config import ANTHROPIC_API_KEY, GEMINI_API_KEY, MODEL, PROVIDER
 
 log = logging.getLogger(__name__)
+logging.getLogger("google_genai").setLevel(logging.ERROR)  # hides an irrelevant AFC notice
 
 
 class LLMUnavailable(RuntimeError):

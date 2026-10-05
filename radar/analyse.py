@@ -110,7 +110,7 @@ def analyse_source(conn, src) -> dict:
     conn.execute(
         """INSERT OR REPLACE INTO ai_outputs(source_id, prompt_version, model, summary, tags)
            VALUES (?,?,?,?,?)""",
-        (src["id"], PROMPT_VERSION, MODEL,
+        (src["id"], PROMPT_VERSION, out.get("_model", MODEL),
          json.dumps({"headline": out["headline"], "summary": out["summary"],
                      "doc_type": out["doc_type"],
                      "suspicious": out["suspicious_instructions_found"]}),

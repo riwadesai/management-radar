@@ -14,7 +14,7 @@ import logging
 import time
 from typing import Any
 
-from .config import ANTHROPIC_API_KEY, GEMINI_API_KEY, MODEL, PROVIDER
+from .config import ANTHROPIC_API_KEY, FALLBACK_MODELS, GEMINI_API_KEY, MODEL, PROVIDER
 
 log = logging.getLogger(__name__)
 logging.getLogger("google_genai").setLevel(logging.ERROR)  # hides an irrelevant AFC notice
@@ -64,7 +64,14 @@ def _gemini_schema(schema: dict) -> dict:
     return s
 
 
-def _call_gemini(system: str, user: str, schema: dict, max_tokens: int) -> dict:
+class ModelExhausted(RuntimeError):
+    """Daily quota gone or model persistently overloaded; try the next model."""
+
+
+_exhausted: set[str] = set()   # models known to be dead for this process
+
+
+def _call_gemini_model(model: str, system: str, user: str, schema: dict, max_tokens: int) -> dict:
     global _gemini
     from google import genai
     from google.genai import types
@@ -79,18 +86,23 @@ def _call_gemini(system: str, user: str, schema: dict, max_tokens: int) -> dict:
         max_output_tokens=max_tokens,
         temperature=0.2,
     )
-    # Free tier is rate-limited per minute; back off on 429/5xx.
-    for attempt in range(5):
+    for attempt in range(3):
         try:
-            resp = _gemini.models.generate_content(model=MODEL, contents=user, config=cfg)
+            resp = _gemini.models.generate_content(model=model, contents=user, config=cfg)
             break
         except (ClientError, ServerError) as exc:
             code = getattr(exc, "code", None) or getattr(exc, "status_code", None)
-            if code in (429, 500, 503) and attempt < 4:
-                wait = 15 * (attempt + 1)
-                log.warning("Gemini %s, retrying in %ss", code, wait)
+            msg = str(exc)
+            # Daily free-tier quota: no point waiting, move to the next model.
+            if code == 429 and ("PerDay" in msg or "retry in" in msg and "h" in msg.split("retry in")[1][:6]):
+                raise ModelExhausted(f"{model}: daily quota exhausted")
+            if code in (429, 500, 503) and attempt < 2:
+                wait = 10 * (attempt + 1)
+                log.warning("%s %s, retrying in %ss", model, code, wait)
                 time.sleep(wait)
                 continue
+            if code in (429, 503):
+                raise ModelExhausted(f"{model}: {code} after retries")
             raise
     if not resp.text:
         raise RuntimeError(f"empty response (finish_reason={resp.candidates[0].finish_reason if resp.candidates else '?'})")
@@ -98,6 +110,23 @@ def _call_gemini(system: str, user: str, schema: dict, max_tokens: int) -> dict:
         log.debug("usage in=%s out=%s", resp.usage_metadata.prompt_token_count,
                   resp.usage_metadata.candidates_token_count)
     return json.loads(resp.text)
+
+
+def _call_gemini(system: str, user: str, schema: dict, max_tokens: int) -> dict:
+    """Walk the model chain; the first model that answers wins."""
+    last: Exception | None = None
+    for model in [MODEL, *FALLBACK_MODELS]:
+        if model in _exhausted:
+            continue
+        try:
+            out = _call_gemini_model(model, system, user, schema, max_tokens)
+            out["_model"] = model
+            return out
+        except ModelExhausted as exc:
+            log.warning("%s - falling back", exc)
+            _exhausted.add(model)
+            last = exc
+    raise RuntimeError(f"all Gemini models unavailable ({last})")
 
 
 def _call_anthropic(system: str, user: str, schema: dict, max_tokens: int, effort: str) -> dict:

@@ -98,4 +98,4 @@ picked from whichever is present. Optional: `RADAR_MODEL` (default
 
 ## Demo recording
 
-_(link to the 3-minute screen recording goes here)_
+_https://youtu.be/POCrk8TqBio_

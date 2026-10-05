@@ -39,8 +39,15 @@ what I accepted, changed, or rejected.
   `gemini-3.6-flash` marked an unanswerable question as grounded in a smoke
   test. `gemini-3.5-flash` passed the smoke test (refused to answer from an
   injected instruction, set grounded=false) and was reachable, so it won. The
-  wrapper retries 429/503 with backoff because the free tier rate-limits per
-  minute. A Claude path (`ANTHROPIC_API_KEY`) is kept in `radar/llm.py`.
+  wrapper retries 429/503 with short backoff.
+- **The free tier is 20 requests per day PER MODEL.** Found out the hard way:
+  the first `analyse` run died after 4 sources with "retry in 13h". Fix: a
+  model chain (`RADAR_FALLBACK_MODELS`) that moves to the next Gemini model
+  the moment one reports a daily quota or stays overloaded, and remembers
+  dead models for the rest of the process. `ai_outputs.model` records which
+  model actually wrote each row, so mixed-model output is auditable. Total
+  budget for the whole corpus is ~20 calls (2 per source), plus 1 per chat
+  question. A Claude path (`ANTHROPIC_API_KEY`) is kept in `radar/llm.py`.
 
 ## Security
 

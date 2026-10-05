@@ -15,8 +15,21 @@ PDF_CACHE = CACHE_DIR / "pdf"
 TRANSCRIPT_CACHE = CACHE_DIR / "transcripts"
 LINKS_CSV = ROOT / "disclosure_links.csv"
 
-MODEL = os.getenv("RADAR_MODEL", "claude-opus-5")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+
+# Provider is chosen by which key is present; Gemini wins if both are set.
+if GEMINI_API_KEY:
+    PROVIDER = "gemini"
+    MODEL = os.getenv("RADAR_MODEL", "gemini-2.5-flash")
+elif ANTHROPIC_API_KEY:
+    PROVIDER = "anthropic"
+    MODEL = os.getenv("RADAR_MODEL", "claude-opus-5")
+else:
+    PROVIDER = None
+    MODEL = os.getenv("RADAR_MODEL", "none")
+
+LLM_CONFIGURED = PROVIDER is not None
 
 # Chunking: PDFs are chunked per page, then split further if a page is long.
 MAX_CHUNK_CHARS = 1800

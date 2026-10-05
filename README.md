@@ -9,7 +9,7 @@ Suzuki and Infosys (the 10 links in `disclosure_links.csv`).
 
 ## Run it in five minutes
 
-Requires Python 3.10+ and an Anthropic API key.
+Requires Python 3.10+ and a Gemini API key (free tier from Google AI Studio works; an Anthropic key works too).
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
@@ -86,9 +86,10 @@ Interactive docs at `/api/docs`.
 
 ## Configuration
 
-Everything is read from `.env` (see `.env.example`): `ANTHROPIC_API_KEY`
-(required for `analyse` and chat), `RADAR_MODEL` (default `claude-opus-5`),
-`RADAR_DB`.
+Everything is read from `.env` (see `.env.example`). Set `GEMINI_API_KEY`
+(free tier from Google AI Studio) or `ANTHROPIC_API_KEY`; the provider is
+picked from whichever is present. Optional: `RADAR_MODEL` (default
+`gemini-2.5-flash` or `claude-opus-5`), `RADAR_DB`.
 
 ## Demo recording
 

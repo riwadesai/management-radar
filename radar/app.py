@@ -9,7 +9,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 
-from .config import ANTHROPIC_API_KEY, MODEL, ROOT
+from .config import LLM_CONFIGURED, MODEL, PROVIDER, ROOT
 from .db import init_db, session
 from .llm import LLMUnavailable
 
@@ -27,7 +27,7 @@ def index():
 
 @app.get("/api/health")
 def health():
-    return {"ok": True, "llm_configured": bool(ANTHROPIC_API_KEY), "model": MODEL}
+    return {"ok": True, "llm_configured": LLM_CONFIGURED, "provider": PROVIDER, "model": MODEL}
 
 
 @app.get("/api/companies")

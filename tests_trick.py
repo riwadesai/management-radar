@@ -4,7 +4,9 @@ import json, sys, time, urllib.request
 
 CASES = [
     # (company_id, question, expect_grounded)
-    (1, "What is the dividend per share announced for FY26?", True),
+    # The CSV title says "Rs 140/share dividend" but the PDF text never mentions
+    # a dividend (its number pages are images). Must come back NOT grounded.
+    (1, "What is the dividend per share announced for FY26?", False),
     (1, "What did RC Bhargava say about the growth target for this year?", True),
     (2, "Who is the new CEO designate at Infosys and when does Salil Parekh step down?", True),
     (2, "What revenue growth guidance did Infosys give for FY27?", True),

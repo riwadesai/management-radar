@@ -70,6 +70,7 @@
   .claim p{margin:0 0 6px;font-weight:500}
   .claim blockquote{margin:0 0 6px;padding-left:12px;border-left:3px solid var(--red);color:#2B3444;font-size:14px}
   .claim .src{font-size:12px;color:var(--muted)}
+  .topic{margin:18px 0 2px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--red-dark);border-bottom:2px solid #FDECEA;padding-bottom:4px}
   .pill{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;background:#E8EEF9;color:var(--navy-2);margin-right:6px}
 
   .chat{position:sticky;top:16px;display:flex;flex-direction:column;max-height:calc(100vh - 32px)}
@@ -238,12 +239,20 @@ function renderTimeline(items){
 function renderClaims(items){
   if(!items) return '';
   if(!items.length) return `<div class="empty">No forward-looking statements extracted yet. Run <code>python -m radar analyse</code>.</div>`;
-  return `<div class="claims">` + items.map(c => `<div class="claim">
-      <p>${esc(c.statement)}</p>
-      ${c.quote ? `<blockquote>“${esc(c.quote)}”</blockquote>`:''}
-      <div class="src"><span class="pill">${esc(c.horizon||'unspecified')}</span><span class="pill">${esc(c.topic||'')}</span>
-        <a href="${esc(c.href)}" target="_blank" rel="noopener">${esc(c.title)} · ${esc(c.where)}</a></div>
-    </div>`).join('') + `</div>`;
+  // Group by topic so a filing promise sits next to the interview promise on
+  // the same subject: a cheap consistency view.
+  const groups = {};
+  items.forEach(c => (groups[c.topic||'other'] ||= []).push(c));
+  const topics = Object.keys(groups).sort((a,b)=>groups[b].length-groups[a].length);
+  return `<div class="claims"><p class="hint" style="margin:10px 0 4px">${items.length} forward-looking statements, grouped by topic. <span class="kind pdf" style="margin:0">BSE filing</span> vs <span class="kind video" style="margin:0">Interview</span> on the same topic shows whether management says the same thing in both places.</p>` +
+    topics.map(t => `<h4 class="topic">${esc(t)} <span class="meta">· ${groups[t].length}</span></h4>` +
+      groups[t].map(c => `<div class="claim">
+        <p><span class="kind ${c.kind}" style="margin:0 8px 0 0">${c.kind==='pdf'?'Filing':'Interview'}</span>${esc(c.statement)}</p>
+        ${c.quote ? `<blockquote>“${esc(c.quote)}”</blockquote>`:''}
+        <div class="src"><span class="pill">${esc(c.horizon||'unspecified')}</span>
+          <a href="${esc(c.href)}" target="_blank" rel="noopener">${esc(c.title)} · ${esc(c.where)}</a></div>
+      </div>`).join('')
+    ).join('') + `</div>`;
 }
 
 // ---------- chat

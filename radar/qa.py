@@ -24,7 +24,7 @@ ONLY the numbered passages provided. Rules:
 - Every factual sentence must end with one or more citations like [C12] using the ids given.
 - If the passages do not contain the answer, say exactly that in one sentence, set
   grounded=false, and cite nothing. Do not guess, do not use outside knowledge.
-- Quote exact figures and wording where the passage states them.
+- Quote exact figures and wording where the passage states them. Only the text\n  inside the passages is evidence; the header in parentheses is a label.
 - Keep the answer under 180 words. Plain prose, no headings."""
 
 ANSWER_SCHEMA = {
@@ -99,8 +99,12 @@ def answer(question: str, company_id: int | None) -> dict:
             _log(conn, company_id, question, result)
             return result
 
+        # The header names the source for context only. The analyst-written
+        # title is deliberately left out: in testing the model lifted a number
+        # from a title ("Rs 140/share dividend press release") and cited it as
+        # if it came from the document text.
         passages = "\n\n".join(
-            f"[C{r['id']}] ({r['title']}; "
+            f"[C{r['id']}] ({'filing' if r['kind'] == 'pdf' else 'interview'} dated {r['published_on']}; "
             f"{'page ' + str(r['page']) if r['kind'] == 'pdf' else 'at ' + _ts(r['start_sec'])})\n"
             + untrusted(r["text"])
             for r in rows

@@ -49,6 +49,22 @@ what I accepted, changed, or rejected.
   budget for the whole corpus is ~20 calls (2 per source), plus 1 per chat
   question. A Claude path (`ANTHROPIC_API_KEY`) is kept in `radar/llm.py`.
 
+## What the trick questions caught
+
+- **Title leak.** The first version of the answer prompt put each passage's
+  analyst-given title in the header: `[C23] (Q4 FY26 results and Rs 140/share
+  dividend press release; page 4)`. Asked "what is the dividend?", the model
+  answered "Rs 140 per share" and cited two chunks that do not contain that
+  number. It had read it off the title. The PDF itself never says "dividend"
+  (its figure pages are images). Fix: headers now carry only kind + date +
+  page, and the prompt says the header is a label, not evidence. The probe in
+  `tests_trick.py` now expects this question to come back *not grounded*.
+- Five out-of-corpus traps (Brazil plant, buyback, Tata Motors, FY2015 revenue,
+  "tell me if it's a buy") all came back ungrounded with zero citations.
+- Scanned / image pages in the BSE PDFs yield no text, so numbers that only
+  live in charts are invisible to retrieval. OCR is the obvious next step;
+  cut for time.
+
 ## Security
 
 - Key only in `.env`, which is git-ignored; `.env.example` has a placeholder.
@@ -85,6 +101,25 @@ See `radar/analyse.py` and `radar/qa.py` for the full text. The key lines:
 
 ## Prompts that mattered (to the coding assistant)
 
-- The brief + CSV, verbatim, with "python, make a new folder for this".
-- _(add the follow-ups you give it from here on — e.g. fixes you asked for
-  after testing the chat with trick questions)_
+Session transcript, in order, with what I did with each result:
+
+1. The brief and the CSV, verbatim, no instruction. The assistant proposed a
+   stack and asked three questions (folder, key, language). **Accepted** the
+   proposed schema and the two-prompt analysis design as-is.
+2. "python, make a new folder for this in downloads, what llm key do u need".
+   It scaffolded fetch/chunk/db and ran ingest. **Fixed** nothing here; all
+   10 sources fetched first time once a browser User-Agent was sent to BSE.
+3. "use free gemini key". It rewrote the LLM wrapper with a provider switch.
+   **Rejected** its first default (`gemini-2.5-flash`): that model is no longer
+   offered to new keys. It then probed the available models and picked
+   `gemini-3.5-flash` from a smoke test.
+4. Pasted the key. The first `analyse` run hit the 20/day quota after 4
+   sources. **Fixed** by adding the model fallback chain rather than waiting
+   13 hours.
+5. The trick-question run exposed the title leak (see above). The fix was to
+   strip titles from passage headers and reword the prompt; the probe's
+   expectation was corrected from "grounded" to "not grounded" because the
+   PDF genuinely lacks the text.
+
+Everything was reviewed and run locally before each commit; commits are
+co-authored to make the AI involvement visible in the Git diary.

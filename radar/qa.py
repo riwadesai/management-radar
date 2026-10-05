@@ -119,6 +119,27 @@ def retrieve(conn, question: str, company_id: int | None, k: int = TOP_K) -> lis
     return picked
 
 
+ANSWER_SYSTEM = """You are an equity-research assistant. Answer the analyst's question using
+ONLY the numbered passages provided. Rules:
+- Every factual sentence must end with one or more citations like [C12] using the ids given.
+- If the passages do not contain the answer, say exactly that in one sentence, set
+  grounded=false, and cite nothing. Do not guess, do not use outside knowledge.
+- Quote exact figures and wording where the passage states them. Only the text
+  inside the passages is evidence; the header in parentheses is a label.
+- Keep the answer under 180 words. Plain prose, no headings."""
+
+ANSWER_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "answer": {"type": "string"},
+        "grounded": {"type": "boolean"},
+        "citations": {"type": "array", "items": {"type": "integer"}},
+    },
+    "required": ["answer", "grounded", "citations"],
+    "additionalProperties": False,
+}
+
+
 def _ts(sec: float | None) -> str:
     s = int(sec or 0)
     return f"{s // 3600:02d}:{s % 3600 // 60:02d}:{s % 60:02d}"

@@ -29,8 +29,7 @@ def ask(page, question: str) -> None:
     box.type(question, delay=35)
     hold(0.6)
     page.keyboard.press("Enter")
-    page.locator(".msg.bot:not(.typing)").last.wait_for(timeout=180_000)
-    # wait until the typing indicator is gone
+    # answered, or an error bubble: either way the typing indicator goes away
     page.locator(".msg.typing").wait_for(state="detached", timeout=180_000)
 
 

@@ -32,6 +32,11 @@ python -m radar analyse         # LLM summaries, tags, forward-looking claims
 python -m radar stats           # row counts + per-source fetch status
 ```
 
+Free-tier note: Gemini allows about 20 requests per day per model. `analyse`
+needs 2 calls per source and walks a fallback chain of models when one runs
+dry (see `RADAR_FALLBACK_MODELS` in `radar/config.py`), so a full re-run of
+10 sources fits in a day. The shipped database already contains the output.
+
 Chat works without running `analyse` (it only needs the chunks), but the
 timeline will show "AI summary not run yet" until you do.
 

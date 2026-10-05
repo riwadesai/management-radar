@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+# raw video files must never be committed; cached PDFs/transcripts are kept on purpose
+*.mp4
+*.webm
+*.mkv

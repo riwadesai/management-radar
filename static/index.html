@@ -294,6 +294,9 @@ function renderAnswer(r){
   };
   const text = esc(r.answer).replace(/\[C\d+(?:\s*,\s*C?\d+)*\]/g, m =>
     (m.match(/\d+/g) || []).map(chip).join(''));
+  // Any validated citation the model listed but did not mark inline still
+  // gets a number and a row in the sources list.
+  r.citations.forEach(c => { if(!order[c.chunk_id]) order[c.chunk_id] = ++n; });
   const list = Object.keys(order).sort((a,b)=>order[a]-order[b]).map(id => {
     const c = byId[id];
     return `<a href="${esc(c.href)}" target="_blank" rel="noopener">${order[id]}. ${esc(c.kind==='pdf' ? `${c.title} · p.${c.page}` : `${c.title} · ▶ ${c.timestamp}`)}</a>`;

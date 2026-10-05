@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "radar",
+      "runtimeExecutable": ".venv/bin/python",
+      "runtimeArgs": ["-m", "radar", "serve", "--port", "8000"],
+      "port": 8000
+    }
+  ]
+}

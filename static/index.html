@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Management Radar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --red:#E2231A; --red-dark:#B71C14; --navy:#0B2447; --navy-2:#19376D;
+    --ink:#1A2233; --muted:#5B6578; --line:#E4E8EF; --bg:#F5F7FA; --card:#FFFFFF;
+    --ok:#1E8E5A; --warn:#B7791F; --radius:12px;
+    --shadow:0 1px 2px rgba(11,36,71,.06),0 4px 16px rgba(11,36,71,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+  a{color:var(--navy-2)}
+  button{font:inherit}
+
+  header{background:var(--navy);color:#fff;border-top:4px solid var(--red)}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 24px}
+  .brand{display:flex;align-items:center;gap:14px;height:64px}
+  .logo{width:34px;height:34px;border-radius:8px;background:var(--red);display:grid;place-items:center;font-weight:700}
+  .brand h1{font-size:17px;margin:0;font-weight:600;letter-spacing:.2px}
+  .brand small{display:block;font-size:12px;opacity:.7;font-weight:400}
+  .status{margin-left:auto;font-size:12px;display:flex;align-items:center;gap:8px;opacity:.85}
+  .dot{width:8px;height:8px;border-radius:50%;background:#9AA5B8}
+  .dot.ok{background:#4ADE80}.dot.bad{background:#F87171}
+
+  .toolbar{display:flex;align-items:center;gap:12px;padding:20px 0 8px;flex-wrap:wrap}
+  .tabs{display:flex;gap:6px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px}
+  .tab{border:0;background:transparent;padding:8px 18px;border-radius:999px;color:var(--muted);cursor:pointer;font-weight:500}
+  .tab[aria-selected=true]{background:var(--navy);color:#fff}
+  .tab:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+  .meta{color:var(--muted);font-size:13px}
+
+  main{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(340px,.9fr);gap:24px;padding-bottom:48px;align-items:start}
+  @media (max-width:900px){main{grid-template-columns:1fr}.chat{position:static}}
+
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line)}
+  .panel-head h2{margin:0;font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:var(--navy)}
+  .subtabs{display:flex;gap:4px}
+  .subtab{border:1px solid var(--line);background:#fff;padding:5px 12px;border-radius:8px;font-size:13px;cursor:pointer;color:var(--muted)}
+  .subtab[aria-selected=true]{border-color:var(--red);color:var(--red);font-weight:600}
+
+  .timeline{padding:8px 18px 18px;position:relative}
+  .item{display:grid;grid-template-columns:96px 1fr;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)}
+  .item:last-child{border-bottom:0}
+  .when{font-size:13px;color:var(--muted);padding-top:2px}
+  .when b{display:block;color:var(--ink);font-weight:600}
+  .kind{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;border-radius:6px;margin-top:8px}
+  .kind.pdf{background:#FDECEA;color:var(--red-dark)}
+  .kind.video{background:#E8EEF9;color:var(--navy-2)}
+  .item h3{margin:0 0 4px;font-size:15px;font-weight:600;line-height:1.35}
+  .item h3 a{color:var(--navy);text-decoration:none}
+  .item h3 a:hover{text-decoration:underline}
+  .given{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .summary{margin:6px 0 10px;color:#2B3444}
+  .tags{display:flex;gap:6px;flex-wrap:wrap}
+  .tag{font-size:12px;padding:2px 9px;border-radius:999px;background:var(--bg);border:1px solid var(--line);color:var(--navy-2)}
+  .pending{font-size:13px;color:var(--warn);background:#FFF8E6;border:1px solid #F3E2B3;padding:8px 10px;border-radius:8px}
+  .failed{font-size:13px;color:var(--red-dark);background:#FDECEA;border:1px solid #F5C6C2;padding:8px 10px;border-radius:8px}
+  .suspicious{font-size:12px;color:var(--red-dark);margin-top:6px}
+
+  .claims{padding:8px 18px 18px}
+  .claim{padding:14px 0;border-bottom:1px solid var(--line)}
+  .claim:last-child{border-bottom:0}
+  .claim p{margin:0 0 6px;font-weight:500}
+  .claim blockquote{margin:0 0 6px;padding-left:12px;border-left:3px solid var(--red);color:#2B3444;font-size:14px}
+  .claim .src{font-size:12px;color:var(--muted)}
+  .pill{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;background:#E8EEF9;color:var(--navy-2);margin-right:6px}
+
+  .chat{position:sticky;top:16px;display:flex;flex-direction:column;max-height:calc(100vh - 32px)}
+  .log{flex:1;overflow:auto;padding:16px 18px;display:flex;flex-direction:column;gap:14px;min-height:300px}
+  .msg{max-width:92%;padding:10px 14px;border-radius:14px;line-height:1.5}
+  .msg.user{align-self:flex-end;background:var(--navy);color:#fff;border-bottom-right-radius:4px}
+  .msg.bot{align-self:flex-start;background:var(--bg);border:1px solid var(--line);border-bottom-left-radius:4px}
+  .msg.bot.ungrounded{border-left:3px solid var(--warn)}
+  .msg.err{align-self:stretch;background:#FDECEA;border:1px solid #F5C6C2;color:var(--red-dark);font-size:14px}
+  .cite{display:inline-block;font-size:11px;font-weight:600;padding:0 6px;border-radius:5px;background:#fff;border:1px solid var(--line);color:var(--red-dark);text-decoration:none;vertical-align:middle;margin:0 1px}
+  .cite:hover{background:var(--red);color:#fff;border-color:var(--red)}
+  .sources{margin-top:10px;padding-top:8px;border-top:1px dashed var(--line);font-size:12px;color:var(--muted)}
+  .sources a{display:block;color:var(--navy-2);text-decoration:none;padding:2px 0}
+  .sources a:hover{text-decoration:underline}
+  .grounded{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+  .grounded.yes{color:var(--ok)}.grounded.no{color:var(--warn)}
+  .hint{font-size:13px;color:var(--muted)}
+  .hint button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 10px;margin:4px 4px 0 0;cursor:pointer;color:var(--navy-2);font-size:13px}
+  .hint button:hover{border-color:var(--navy-2)}
+  form{display:flex;gap:8px;padding:12px 18px;border-top:1px solid var(--line)}
+  textarea{flex:1;resize:none;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;min-height:44px;max-height:120px}
+  textarea:focus{outline:2px solid var(--navy-2);outline-offset:-1px}
+  .send{background:var(--red);color:#fff;border:0;border-radius:10px;padding:0 18px;font-weight:600;cursor:pointer}
+  .send:hover{background:var(--red-dark)}
+  .send:disabled{opacity:.5;cursor:not-allowed}
+
+  .typing span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--muted);margin-right:3px;animation:b 1s infinite}
+  .typing span:nth-child(2){animation-delay:.15s}.typing span:nth-child(3){animation-delay:.3s}
+  @keyframes b{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-4px);opacity:1}}
+  .skel{height:14px;border-radius:6px;background:linear-gradient(90deg,#EEF1F6 25%,#E3E8F0 37%,#EEF1F6 63%);background-size:400% 100%;animation:sh 1.2s infinite;margin:8px 0}
+  @keyframes sh{0%{background-position:100% 0}100%{background-position:0 0}}
+  .empty{padding:32px 18px;text-align:center;color:var(--muted)}
+  .banner{background:#FFF8E6;border:1px solid #F3E2B3;color:#6B4F00;padding:10px 14px;border-radius:10px;font-size:13px;margin:8px 0 0}
+  code{background:#EEF1F6;padding:1px 6px;border-radius:4px;font-size:12.5px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap brand">
+    <div class="logo">R</div>
+    <h1>Management Radar <small>What companies file, and what their management says</small></h1>
+    <div class="status"><span class="dot" id="dot"></span><span id="statusText">connecting…</span></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="toolbar">
+    <div class="tabs" role="tablist" id="companyTabs"></div>
+    <span class="meta" id="companyMeta"></span>
+  </div>
+  <div id="banner"></div>
+
+  <main>
+    <section class="panel" aria-labelledby="leftTitle">
+      <div class="panel-head">
+        <h2 id="leftTitle">Disclosures</h2>
+        <div class="subtabs" role="tablist">
+          <button class="subtab" role="tab" aria-selected="true" data-view="timeline">Timeline</button>
+          <button class="subtab" role="tab" aria-selected="false" data-view="claims">Promise tracker</button>
+        </div>
+      </div>
+      <div id="left"></div>
+    </section>
+
+    <aside class="panel chat" aria-label="Ask the documents">
+      <div class="panel-head"><h2>Ask the documents</h2><span class="meta" id="chatScope"></span></div>
+      <div class="log" id="log"></div>
+      <form id="chatForm">
+        <textarea id="q" rows="1" placeholder="e.g. What has management said about margins?" required></textarea>
+        <button class="send" id="send" type="submit">Ask</button>
+      </form>
+    </aside>
+  </main>
+</div>
+
+<script>
+const $ = (s, el=document) => el.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const state = { companies: [], company: null, view: 'timeline', timeline: null, claims: null, busy: false };
+
+function fmtDate(d){
+  if(!d) return '—';
+  const [y,m,day] = d.split('-');
+  const mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][(+m||1)-1];
+  return day ? `${+day} ${mon} ${y}` : (m ? `${mon} ${y}` : y);
+}
+
+async function api(path, opts){
+  const r = await fetch(path, opts);
+  const body = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(body.error || body.detail || `${r.status} ${r.statusText}`);
+  return body;
+}
+
+// ---------- boot
+(async function boot(){
+  try{
+    const h = await api('/api/health');
+    $('#dot').className = 'dot ' + (h.llm_configured ? 'ok':'bad');
+    $('#statusText').textContent = h.llm_configured ? `AI online · ${h.model}` : 'AI offline: no API key';
+    if(!h.llm_configured) $('#banner').innerHTML = `<div class="banner">No <code>ANTHROPIC_API_KEY</code> found. Timeline and cached documents still work; summaries and chat need a key in <code>.env</code> and <code>python -m radar analyse</code>.</div>`;
+  }catch(e){ $('#dot').className='dot bad'; $('#statusText').textContent='backend unreachable'; }
+  try{
+    state.companies = await api('/api/companies');
+    renderTabs();
+    selectCompany(state.companies[0]?.id);
+  }catch(e){ $('#left').innerHTML = `<div class="empty">Could not load companies: ${esc(e.message)}</div>`; }
+})();
+
+function renderTabs(){
+  $('#companyTabs').innerHTML = state.companies.map(c =>
+    `<button class="tab" role="tab" aria-selected="${c.id===state.company}" data-id="${c.id}">${esc(c.name)}</button>`).join('');
+  $('#companyTabs').onclick = e => { const b = e.target.closest('.tab'); if(b) selectCompany(+b.dataset.id); };
+}
+
+async function selectCompany(id){
+  if(!id) return;
+  state.company = id; state.timeline = null; state.claims = null;
+  renderTabs();
+  const c = state.companies.find(x=>x.id===id);
+  $('#companyMeta').textContent = `${c.ticker || ''} · ${c.pdfs} filings · ${c.videos} interviews${c.failed ? ` · ${c.failed} failed fetch` : ''}`;
+  $('#chatScope').textContent = `Scope: ${c.name}`;
+  $('#log').innerHTML = starterHint(c.name);
+  renderLeft();
+  try{
+    const [t, cl] = await Promise.all([api(`/api/companies/${id}/timeline`), api(`/api/companies/${id}/claims`)]);
+    if(state.company!==id) return;
+    state.timeline = t; state.claims = cl; renderLeft();
+  }catch(e){ $('#left').innerHTML = `<div class="empty">Failed to load: ${esc(e.message)}</div>`; }
+}
+
+document.querySelectorAll('.subtab').forEach(b => b.onclick = () => {
+  state.view = b.dataset.view;
+  document.querySelectorAll('.subtab').forEach(x => x.setAttribute('aria-selected', x===b));
+  renderLeft();
+});
+
+function renderLeft(){
+  const el = $('#left');
+  if(state.timeline===null){ el.innerHTML = `<div class="timeline">${'<div class="item"><div><div class="skel" style="width:70px"></div></div><div><div class="skel" style="width:60%"></div><div class="skel"></div><div class="skel" style="width:85%"></div></div></div>'.repeat(3)}</div>`; return; }
+  el.innerHTML = state.view==='timeline' ? renderTimeline(state.timeline) : renderClaims(state.claims);
+}
+
+function renderTimeline(items){
+  if(!items.length) return `<div class="empty">No disclosures for this company.</div>`;
+  return `<div class="timeline">` + items.map(s => {
+    const ai = s.ai;
+    let body;
+    if(s.fetch_status==='failed') body = `<div class="failed">Could not fetch this source: ${esc(s.fetch_error||'unknown error')}. <a href="${esc(s.url)}" target="_blank" rel="noopener">Open original</a></div>`;
+    else if(!ai) body = `<div class="pending">Fetched and indexed (${s.chunk_count} passages), AI summary not run yet.</div>`;
+    else body = `<p class="summary">${esc(ai.summary)}</p>
+        <div class="tags">${s.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
+        ${ai.suspicious ? `<div class="suspicious">⚠ The model flagged instruction-like text inside this document.</div>`:''}`;
+    const extra = s.kind==='pdf' ? `${s.page_count||'?'} pages` : (s.duration||'');
+    return `<article class="item">
+      <div class="when"><b>${fmtDate(s.published_on)}</b><span class="kind ${s.kind}">${s.kind==='pdf'?'BSE filing':'Interview'}</span><div style="margin-top:6px">${esc(extra)}</div></div>
+      <div>
+        <h3><a href="${esc(s.open_href)}" target="_blank" rel="noopener">${esc(ai?.headline || s.title)}</a></h3>
+        ${ai ? `<div class="given">Listed as: ${esc(s.title)}${ai.doc_type ? ` · ${esc(ai.doc_type)}`:''}</div>`:''}
+        ${body}
+      </div>
+    </article>`;
+  }).join('') + `</div>`;
+}
+
+function renderClaims(items){
+  if(!items) return '';
+  if(!items.length) return `<div class="empty">No forward-looking statements extracted yet. Run <code>python -m radar analyse</code>.</div>`;
+  return `<div class="claims">` + items.map(c => `<div class="claim">
+      <p>${esc(c.statement)}</p>
+      ${c.quote ? `<blockquote>“${esc(c.quote)}”</blockquote>`:''}
+      <div class="src"><span class="pill">${esc(c.horizon||'unspecified')}</span><span class="pill">${esc(c.topic||'')}</span>
+        <a href="${esc(c.href)}" target="_blank" rel="noopener">${esc(c.title)} · ${esc(c.where)}</a></div>
+    </div>`).join('') + `</div>`;
+}
+
+// ---------- chat
+function starterHint(name){
+  const qs = ['What has management said about expansion plans?','What did management promise about margins?','Any management changes announced?','What is the dividend?'];
+  return `<div class="hint">Answers come only from ${esc(name)}'s stored filings and interviews, with a page or timestamp for every claim.<br>${qs.map(q=>`<button type="button" data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div>`;
+}
+$('#log').addEventListener('click', e => { const b = e.target.closest('button[data-q]'); if(b){ $('#q').value = b.dataset.q; $('#chatForm').requestSubmit(); } });
+
+$('#q').addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); $('#chatForm').requestSubmit(); } });
+
+$('#chatForm').onsubmit = async e => {
+  e.preventDefault();
+  const q = $('#q').value.trim(); if(!q || state.busy) return;
+  const log = $('#log'); const hint = $('.hint', log); if(hint) hint.remove();
+  log.insertAdjacentHTML('beforeend', `<div class="msg user">${esc(q)}</div>`);
+  const wait = document.createElement('div'); wait.className='msg bot typing'; wait.innerHTML='<span></span><span></span><span></span>'; log.appendChild(wait);
+  log.scrollTop = log.scrollHeight;
+  $('#q').value=''; state.busy=true; $('#send').disabled=true;
+  try{
+    const r = await api('/api/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({question:q, company_id: state.company})});
+    wait.remove();
+    log.insertAdjacentHTML('beforeend', renderAnswer(r));
+  }catch(err){
+    wait.remove();
+    log.insertAdjacentHTML('beforeend', `<div class="msg err">${esc(err.message)}</div>`);
+  }finally{ state.busy=false; $('#send').disabled=false; log.scrollTop = log.scrollHeight; $('#q').focus(); }
+};
+
+function renderAnswer(r){
+  const byId = Object.fromEntries(r.citations.map(c=>[c.chunk_id, c]));
+  let n = 0; const order = {};
+  const text = esc(r.answer).replace(/\[C(\d+)\]/g, (m, id) => {
+    const c = byId[id]; if(!c) return '';
+    if(!order[id]) order[id] = ++n;
+    const t = c.kind==='pdf' ? `${c.title}, page ${c.page}` : `${c.title} at ${c.timestamp}`;
+    return `<a class="cite" href="${esc(c.href)}" target="_blank" rel="noopener" title="${esc(t)}">${order[id]}</a>`;
+  });
+  const list = Object.keys(order).sort((a,b)=>order[a]-order[b]).map(id => {
+    const c = byId[id];
+    return `<a href="${esc(c.href)}" target="_blank" rel="noopener">${order[id]}. ${esc(c.kind==='pdf' ? `${c.title} · p.${c.page}` : `${c.title} · ▶ ${c.timestamp}`)}</a>`;
+  }).join('');
+  return `<div class="msg bot ${r.grounded?'':'ungrounded'}">
+    <div class="grounded ${r.grounded?'yes':'no'}">${r.grounded?'Grounded in sources':'Not found in sources'}</div>
+    ${text}
+    ${list ? `<div class="sources">${list}</div>`:''}
+  </div>`;
+}
+</script>
+</body>
+</html>

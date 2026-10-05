@@ -15,7 +15,7 @@ PDF_CACHE = CACHE_DIR / "pdf"
 TRANSCRIPT_CACHE = CACHE_DIR / "transcripts"
 LINKS_CSV = ROOT / "disclosure_links.csv"
 
-MODEL = os.getenv("RADAR_MODEL", "claude-sonnet-5")
+MODEL = os.getenv("RADAR_MODEL", "claude-opus-5")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
 # Chunking: PDFs are chunked per page, then split further if a page is long.

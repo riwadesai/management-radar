@@ -21,11 +21,11 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 # Provider is chosen by which key is present; Gemini wins if both are set.
 if GEMINI_API_KEY:
     PROVIDER = "gemini"
-    MODEL = os.getenv("RADAR_MODEL", "gemini-3.5-flash")
+    MODEL = os.getenv("RADAR_MODEL", "gemini-3.5-flash-lite")
     # Free tier allows ~20 requests/day PER MODEL, so we walk a chain when one runs dry.
     FALLBACK_MODELS = [m for m in os.getenv(
         "RADAR_FALLBACK_MODELS",
-        "gemini-3.6-flash,gemini-3.5-flash-lite,gemini-3.1-flash-lite,gemini-3.8-flash,gemini-3.7-flash",
+        "gemini-3.1-flash-lite,gemini-3.6-flash,gemini-3.5-flash,gemini-3.7-flash,gemini-3.8-flash",
     ).split(",") if m.strip()]
 elif ANTHROPIC_API_KEY:
     PROVIDER = "anthropic"
